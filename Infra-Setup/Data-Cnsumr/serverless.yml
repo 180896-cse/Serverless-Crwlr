@@ -1,0 +1,33 @@
+service: SqsClient
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  function1:
+    handler: index.handler
+    events:
+      # every Monday at 11:55 PM
+      - schedule: cron(55 23 * * ? *)
+
+resources: # CloudFormation template syntax from here on.
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: POKEMON_DB
+        AttributeDefinitions:
+          - AttributeName: "#"
+            AttributeType: "S"
+          - AttributeName: "Name"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "#"
+            KeyType: "HASH"
+          - AttributeName: "Name"
+            KeyType: "RANGE"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
