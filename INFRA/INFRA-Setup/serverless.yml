@@ -1,0 +1,43 @@
+service: INFRA-Setup
+frameworkVersion: "3"
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  environment:
+    PROFILE: ${env:Table}
+    
+
+functions:
+  function1:
+    handler: index.SQSProducer
+    events:
+      # every day at 11:40 PM
+      # - schedule: cron(40 23 * * ? *)
+      - schedule: cron(*/2 * * * ? *)
+  function2:
+    handler: index.SQSClient
+    events:
+      # every day at 11:55 PM
+      - schedule: cron(*/1 * * * ? *)
+      # - schedule: cron(55 23 * * ? *)
+resources: # CloudFormation template syntax from here on.
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PROFILE}
+        AttributeDefinitions:
+          - AttributeName: "#"
+            AttributeType: "S"
+          - AttributeName: "Name"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "#"
+            KeyType: "HASH"
+          - AttributeName: "Name"
+            KeyType: "RANGE"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
